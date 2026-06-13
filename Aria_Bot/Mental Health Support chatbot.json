@@ -1,0 +1,206 @@
+{
+  "name": "Mental Health Support chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f999f854-6042-402f-9537-4b840c236e0f",
+      "name": "When chat message received",
+      "webhookId": "b28cbba0-09ac-4f63-b1ed-cfa4cd4e1e9b"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a compassionate, professional university academic advisor. Your job is to have a supportive conversation with the student who is reaching out to you. If the student mentions academic anxiety, placement tracking, exam pressures, or backlogs, you MUST execute your 'Stress_Analyst_Agent' tool to evaluate the message metrics first. Once you receive its short diagnostic output summary, use that insight to formulate a warm, encouraging, and clear conversational reply directly to the student.",
+        "options": {
+          "systemMessage": "You are a compassionate, professional university academic advisor. Your job is to converse with the student who is reaching out. If the student mentions academic anxiety, placement tracking, exam pressures, or backlogs, you MUST execute your 'Stress_Analyst_Agent' tool to evaluate the message metrics first. Once you receive its short diagnostic output summary, use that insight to formulate a warm, encouraging, and clear conversational reply directly to them."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        16
+      ],
+      "id": "60f42b16-b66d-474e-9e69-00f090837264",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        208,
+        336
+      ],
+      "id": "4e058ea4-2f14-4cca-9849-fbe074bb265f",
+      "name": "Ollama Chat Model",
+      "notesInFlow": false,
+      "credentials": {
+        "ollamaApi": {
+          "id": "YO2aAnNt2GEfopxI",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        496,
+        320
+      ],
+      "id": "c4dda962-3fb2-4a89-82c4-305bd9368a9b",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YO2aAnNt2GEfopxI",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        208
+      ],
+      "id": "57a2026a-b48f-4d13-88ca-9df20426a4a4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        592,
+        256
+      ],
+      "id": "da3a1ef3-688e-4743-af49-aac5a4ebfa48",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool whenever the student mentions exam stress, placements, fatigue, or backlogs to get an academic anxiety analysis report.",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a background Student Stress Analyst. Your single task is to analyze the user's message against known student stress metrics (placements, sleep issues, backlogs). Output a brief, 1-sentence analytical diagnostic summary of their core struggle for the supervisor."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        496,
+        112
+      ],
+      "id": "4b57faab-b53a-49a2-88e9-634709c55b9c",
+      "name": "Stress_Analyst_Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Stress_Analyst_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Stress_Analyst_Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stress_Analyst_Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "565eb6d9-64ee-4334-9f8c-cfc330349039",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dbdba8f573b3686ff7a1f89a52809e6cea88adc243e129ac91d575d3970cb1c7"
+  },
+  "id": "7WW3JIGttLKJJYBe",
+  "tags": []
+}
