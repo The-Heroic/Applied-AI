@@ -39,22 +39,37 @@ def fetch_wellness_advice() -> str:
         return f"Could not fetch wellness advice: {e}"
     return "Take a step away from the screen, drink some water, and allow yourself to rest. Rest is progress."
 
+
 @tool
-def search_live_jobs(role_query: str) -> str:
+def search_live_jobs(role_query: str = None, **kwargs) -> str:
     """Useful when a student expresses career market panic, placement tracking stress, or requests active entry-level technology job openings. Input must be a clear job title string like 'Software Engineer' or 'Data Analyst'."""
+    
+    # Self-healing logic: If the 3B model passes a dictionary instead of a raw string
+    clean_query = ""
+    if isinstance(role_query, dict):
+        clean_query = role_query.get("value", "Software Engineer")
+    elif isinstance(role_query, str):
+        clean_query = role_query
+    elif kwargs and "role_query" in kwargs:
+        val = kwargs["role_query"]
+        clean_query = val.get("value") if isinstance(val, dict) else str(val)
+    else:
+        clean_query = "Software Engineer" # Safe fallback default
+
     APP_ID = "YOUR_ADZUNA_APP_ID"  
     APP_KEY = "YOUR_ADZUNA_APP_KEY"  
-    url = f"https://api.adzuna.com/v1/api/jobs/in/search/1?app_id={APP_ID}&app_key={APP_KEY}&results_per_page=3&what={role_query}"
+    url = f"https://api.adzuna.com/v1/api/jobs/in/search/1?app_id={APP_ID}&app_key={APP_KEY}&results_per_page=3&what={clean_query}"
+    
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             results = response.json().get('results', [])
             if not results:
-                return f"No live job listings found on the aggregator for query: '{role_query}' right now."
+                return f"No live job listings found on the aggregator for query: '{clean_query}' right now."
             job_listings = []
             for job in results:
                 job_listings.append(f"- {job['title']} at {job['company']['display_name']} ({job['location']['display_name']})")
-            return f"Real-time Open Job Openings for '{role_query}':\n" + "\n".join(job_listings)
+            return f"Real-time Open Job Openings for '{clean_query}':\n" + "\n".join(job_listings)
     except Exception as e:
         return f"Could not fetch live job data streams: {e}"
     return "Hiring networks are active. Keep expanding your core framework foundations."
